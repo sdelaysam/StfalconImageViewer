@@ -18,7 +18,7 @@ package com.stfalcon.imageviewer.viewer.view
 
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
+import android.view.animation.Interpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.transition.AutoTransition
@@ -27,22 +27,24 @@ import androidx.transition.TransitionManager
 import com.stfalcon.imageviewer.common.extensions.*
 
 internal class TransitionImageAnimator(
+    private val openDuration: Long,
+    private val closeDuration: Long,
+    private val openInterpolator: Interpolator?,
+    private val closeInterpolator: Interpolator?,
     private val externalImage: ImageView?,
     private val internalImage: ImageView,
     private val internalImageContainer: FrameLayout
 ) {
-
-    companion object {
-        private const val TRANSITION_DURATION_OPEN = 200L
-        private const val TRANSITION_DURATION_CLOSE = 250L
-    }
 
     internal var isAnimating = false
 
     private var isClosing = false
 
     private val transitionDuration: Long
-        get() = if (isClosing) TRANSITION_DURATION_CLOSE else TRANSITION_DURATION_OPEN
+        get() = if (isClosing) closeDuration else openDuration
+
+    private val interpolator: Interpolator?
+        get() = if (isClosing) closeInterpolator else openInterpolator
 
     private val internalRoot: ViewGroup
         get() = internalImageContainer.parent as ViewGroup
@@ -53,7 +55,7 @@ internal class TransitionImageAnimator(
         onTransitionEnd: () -> Unit
     ) {
         if (externalImage.isRectVisible) {
-            onTransitionStart(TRANSITION_DURATION_OPEN)
+            onTransitionStart(openDuration)
             doOpenTransition(containerPadding, onTransitionEnd)
         } else {
             onTransitionEnd()
@@ -66,7 +68,7 @@ internal class TransitionImageAnimator(
         onTransitionEnd: () -> Unit
     ) {
         if (externalImage.isRectVisible && !shouldDismissToBottom) {
-            onTransitionStart(TRANSITION_DURATION_CLOSE)
+            onTransitionStart(closeDuration)
             doCloseTransition(onTransitionEnd)
         } else {
             externalImage?.visibility = View.VISIBLE
@@ -147,6 +149,6 @@ internal class TransitionImageAnimator(
     private fun createTransition(onTransitionEnd: (() -> Unit)? = null): Transition =
         AutoTransition()
             .setDuration(transitionDuration)
-            .setInterpolator(DecelerateInterpolator())
+            .setInterpolator(interpolator)
             .addListener(onTransitionEnd = { onTransitionEnd?.invoke() })
 }

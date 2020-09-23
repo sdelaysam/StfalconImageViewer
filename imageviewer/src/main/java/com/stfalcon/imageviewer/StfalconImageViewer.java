@@ -19,6 +19,7 @@ package com.stfalcon.imageviewer;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import androidx.annotation.*;
 import androidx.core.content.ContextCompat;
@@ -295,6 +296,41 @@ public class StfalconImageViewer<T> {
          */
         public Builder<T> withDismissListener(OnDismissListener onDismissListener) {
             this.data.setOnDismissListener(onDismissListener);
+            return this;
+        }
+
+        public Builder<T> withSwipeDismissRatio(float ratio) {
+            this.data.setSwipeDismissRatio(ratio);
+            return this;
+        }
+
+        public Builder<T> withSwipeDismissAnimationDuration(long duration) {
+            this.data.setSwipeDismissAnimationDuration(duration);
+            return this;
+        }
+
+        public Builder<T> withSwipeDismissAnimationInterpolator(Interpolator interpolator) {
+            this.data.setSwipeDismissAnimationInterpolator(interpolator);
+            return this;
+        }
+
+        public Builder<T> withImageTransitionOpenDuration(long duration) {
+            this.data.setImageTransitionOpenDuration(duration);
+            return this;
+        }
+
+        public Builder<T> withImageTransitionOpenInterpolator(Interpolator interpolator) {
+            this.data.setImageTransitionOpenInterpolator(interpolator);
+            return this;
+        }
+
+        public Builder<T> withImageTransitionCloseDuration(long duration) {
+            this.data.setImageTransitionCloseDuration(duration);
+            return this;
+        }
+
+        public Builder<T> withImageTransitionCloseInterpolator(Interpolator interpolator) {
+            this.data.setImageTransitionCloseInterpolator(interpolator);
             return this;
         }
 

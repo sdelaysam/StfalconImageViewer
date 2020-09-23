@@ -20,21 +20,21 @@ import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateInterpolator
+import android.view.animation.Interpolator
 import com.stfalcon.imageviewer.common.extensions.hitRect
 import com.stfalcon.imageviewer.common.extensions.setAnimatorListener
 
 internal class SwipeToDismissHandler(
+    private val animationDuration: Long,
+    private val swipeRatio: Float,
+    private val swipeInterpolator: Interpolator?,
     private val swipeView: View,
     private val onDismiss: () -> Unit,
     private val onSwipeViewMove: (translationY: Float, translationLimit: Int) -> Unit,
     private val shouldAnimateDismiss: () -> Boolean
 ) : View.OnTouchListener {
 
-    companion object {
-        private const val ANIMATION_DURATION = 200L
-    }
-
-    private var translationLimit: Int = swipeView.height / 4
+    private var translationLimit: Int = (swipeView.height * swipeRatio).toInt()
     private var isTracking = false
     private var startY: Float = 0f
 
@@ -90,8 +90,8 @@ internal class SwipeToDismissHandler(
     private fun animateTranslation(translationTo: Float) {
         swipeView.animate()
             .translationY(translationTo)
-            .setDuration(ANIMATION_DURATION)
-            .setInterpolator(AccelerateInterpolator())
+            .setDuration(animationDuration)
+            .setInterpolator(swipeInterpolator)
             .setUpdateListener { onSwipeViewMove(swipeView.translationY, translationLimit) }
             .setAnimatorListener(onAnimationEnd = {
                 if (translationTo != 0f) {

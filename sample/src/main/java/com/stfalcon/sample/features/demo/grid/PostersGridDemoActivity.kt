@@ -29,6 +29,9 @@ class PostersGridDemoActivity : AppCompatActivity() {
         viewer = StfalconImageViewer.Builder<Poster>(this, Demo.posters, ::loadPosterImage)
             .withStartPosition(startPosition)
             .withTransitionFrom(target)
+            .withSwipeDismissRatio(0.1f)
+            .withImageTransitionOpenDuration(350L)
+            .withImageTransitionCloseDuration(350L)
             .withImageChangeListener {
                 viewer.updateTransitionImage(postersGridView.imageViews[it])
             }

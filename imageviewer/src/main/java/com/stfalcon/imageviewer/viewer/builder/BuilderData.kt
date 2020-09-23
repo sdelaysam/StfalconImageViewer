@@ -18,6 +18,9 @@ package com.stfalcon.imageviewer.viewer.builder
 
 import android.graphics.Color
 import android.view.View
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.Interpolator
 import android.widget.ImageView
 import com.stfalcon.imageviewer.listeners.OnDismissListener
 import com.stfalcon.imageviewer.listeners.OnImageChangeListener
@@ -38,4 +41,12 @@ internal class BuilderData<T>(
     var isZoomingAllowed = true
     var isSwipeToDismissAllowed = true
     var transitionView: ImageView? = null
+    var swipeDismissRatio: Float = 0.25f
+    var swipeDismissAnimationDuration: Long = 200L
+    var swipeDismissAnimationInterpolator: Interpolator? = DecelerateInterpolator()
+    var imageTransitionOpenDuration: Long = 200L
+    var imageTransitionOpenInterpolator: Interpolator? = DecelerateInterpolator()
+    var imageTransitionCloseDuration: Long = 250L
+    var imageTransitionCloseInterpolator: Interpolator? = DecelerateInterpolator()
 }
+
