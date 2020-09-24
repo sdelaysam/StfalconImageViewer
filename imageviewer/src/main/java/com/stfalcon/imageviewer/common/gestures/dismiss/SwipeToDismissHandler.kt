@@ -32,12 +32,11 @@ internal class SwipeToDismissHandler(
     private val swipeView: View,
     private val onDismiss: () -> Unit,
     private val onSwipeViewMove: (translationY: Float, translationLimit: Int) -> Unit,
-    private val shouldAnimateDismiss: () -> Boolean
+    private val dismissOut: () -> Boolean
 ) : View.OnTouchListener {
 
     private var tracker: VelocityTracker? = null
-    private val velocityScale = 100
-    private val velocityThreshold = 800
+    private val velocityScale = 50
     private var translationLimit: Int = (swipeView.height * swipeRatio).toInt()
     private var isTracking = false
     private var startY: Float = 0f
@@ -90,16 +89,20 @@ internal class SwipeToDismissHandler(
     }
 
     private fun onTrackingEnd(parentHeight: Int, velocity: Float) {
+        val dismissOut = dismissOut()
         val animateTo = when {
-            swipeView.translationY < -translationLimit -> -parentHeight.toFloat()
-            swipeView.translationY > translationLimit -> parentHeight.toFloat()
+            dismissOut -> {
+                when {
+                    swipeView.translationY < -translationLimit -> -parentHeight.toFloat() - swipeView.translationY
+                    swipeView.translationY > translationLimit -> parentHeight.toFloat() - swipeView.translationY
+                    else -> 0f
+                }
+            }
+            abs(swipeView.translationY) >= translationLimit -> swipeView.translationY + velocity
             else -> 0f
         }
-        if (animateTo != 0f && !shouldAnimateDismiss() && abs(velocity) < velocityThreshold) {
-            onDismiss()
-        } else {
-            animateTranslation(animateTo)
-        }
+
+        animateTranslation(animateTo)
     }
 
     private fun animateTranslation(translationTo: Float) {

@@ -113,7 +113,7 @@ internal class ImageViewerView<T> @JvmOverloads constructor(
             currentPosition = value
         }
 
-    private val shouldDismissToBottom: Boolean
+    private val dismissOut: Boolean
         get() = externalTransitionImageView == null
             || !externalTransitionImageView.isRectVisible
             || !isAtStartPosition
@@ -199,7 +199,7 @@ internal class ImageViewerView<T> @JvmOverloads constructor(
     }
 
     internal fun close() {
-        if (shouldDismissToBottom) {
+        if (dismissOut) {
             swipeDismissHandler.initiateDismissToBottom()
         } else {
             animateClose()
@@ -240,7 +240,7 @@ internal class ImageViewerView<T> @JvmOverloads constructor(
         dismissContainer.applyMargin(0, 0, 0, 0)
 
         transitionImageAnimator.animateClose(
-            shouldDismissToBottom = shouldDismissToBottom,
+            dismissOut = dismissOut,
             onTransitionStart = { duration ->
                 backgroundView.animateAlpha(backgroundView.alpha, 0f, duration)
                 overlayView?.animateAlpha(overlayView?.alpha, 0f, duration)
@@ -351,7 +351,7 @@ internal class ImageViewerView<T> @JvmOverloads constructor(
         swipeRatio = swipeDismissRatio,
         swipeInterpolator = swipeDismissAnimationInterpolator,
         swipeView = dismissContainer,
-        shouldAnimateDismiss = { shouldDismissToBottom },
+        dismissOut = { dismissOut },
         onDismiss = { animateClose() },
         onSwipeViewMove = ::handleSwipeViewMove)
 

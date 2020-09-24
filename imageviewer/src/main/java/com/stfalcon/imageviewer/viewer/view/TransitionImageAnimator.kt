@@ -41,7 +41,7 @@ internal class TransitionImageAnimator(
     private val transitionDuration: Long
         get() = if (isClosing) closeDuration else openDuration
 
-    private val interpolator: Interpolator?
+    private val transitionInterpolator: Interpolator?
         get() = if (isClosing) closeInterpolator else openInterpolator
 
     private val internalRoot: ViewGroup
@@ -61,11 +61,11 @@ internal class TransitionImageAnimator(
     }
 
     internal fun animateClose(
-        shouldDismissToBottom: Boolean,
+        dismissOut: Boolean,
         onTransitionStart: (Long) -> Unit,
         onTransitionEnd: () -> Unit
     ) {
-        if (externalImage.isRectVisible && !shouldDismissToBottom) {
+        if (externalImage.isRectVisible && !dismissOut) {
             onTransitionStart(closeDuration)
             doCloseTransition(onTransitionEnd)
         } else {
@@ -157,7 +157,7 @@ internal class TransitionImageAnimator(
                 .addTransition(ChangeClipBounds())
                 .addTransition(ChangeImageTransform())
                 .setDuration(transitionDuration)
-                .setInterpolator(interpolator)
+                .setInterpolator(transitionInterpolator)
                 .addListener(onTransitionEnd = { onTransitionEnd?.invoke() })
 
         }
