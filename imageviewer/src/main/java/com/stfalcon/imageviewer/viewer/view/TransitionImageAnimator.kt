@@ -21,9 +21,7 @@ import android.view.ViewGroup
 import android.view.animation.Interpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.transition.AutoTransition
-import androidx.transition.Transition
-import androidx.transition.TransitionManager
+import androidx.transition.*
 import com.stfalcon.imageviewer.common.extensions.*
 
 internal class TransitionImageAnimator(
@@ -79,6 +77,7 @@ internal class TransitionImageAnimator(
     private fun doOpenTransition(containerPadding: IntArray, onTransitionEnd: () -> Unit) {
         isAnimating = true
         prepareTransitionLayout()
+        internalImage.scaleType = externalImage?.scaleType
 
         internalRoot.postApply {
             //ain't nothing but a kludge to prevent blinking when transition is starting
@@ -98,8 +97,10 @@ internal class TransitionImageAnimator(
                 containerPadding[0],
                 containerPadding[1],
                 containerPadding[2],
-                containerPadding[3])
+                containerPadding[3]
+            )
 
+            internalImage.scaleType = ImageView.ScaleType.FIT_CENTER
             internalImageContainer.requestLayout()
         }
     }
@@ -108,10 +109,12 @@ internal class TransitionImageAnimator(
         isAnimating = true
         isClosing = true
 
+        internalImage.scaleType = ImageView.ScaleType.FIT_CENTER
         TransitionManager.beginDelayedTransition(
             internalRoot, createTransition { handleCloseTransitionEnd(onTransitionEnd) })
 
         prepareTransitionLayout()
+        internalImage.scaleType = externalImage?.scaleType
         internalImageContainer.requestLayout()
     }
 
@@ -147,8 +150,15 @@ internal class TransitionImageAnimator(
     }
 
     private fun createTransition(onTransitionEnd: (() -> Unit)? = null): Transition =
-        AutoTransition()
-            .setDuration(transitionDuration)
-            .setInterpolator(interpolator)
-            .addListener(onTransitionEnd = { onTransitionEnd?.invoke() })
+        TransitionSet().apply {
+            ordering = TransitionSet.ORDERING_TOGETHER
+            addTransition(ChangeBounds())
+                .addTransition(ChangeTransform())
+                .addTransition(ChangeClipBounds())
+                .addTransition(ChangeImageTransform())
+                .setDuration(transitionDuration)
+                .setInterpolator(interpolator)
+                .addListener(onTransitionEnd = { onTransitionEnd?.invoke() })
+
+        }
 }
