@@ -104,6 +104,13 @@ internal class ImageViewerDialog<T>(
             containerPadding = builderData.containerPaddingPixels
             imagesMargin = builderData.imageMarginPixels
             overlayView = builderData.overlayView
+            imageTransitionOpenDuration = builderData.imageTransitionOpenDuration
+            imageTransitionCloseDuration = builderData.imageTransitionCloseDuration
+            imageTransitionOpenInterpolator = builderData.imageTransitionOpenInterpolator
+            imageTransitionCloseInterpolator = builderData.imageTransitionCloseInterpolator
+            swipeDismissAnimationDuration = builderData.swipeDismissAnimationDuration
+            swipeDismissRatio = builderData.swipeDismissRatio
+            swipeDismissAnimationInterpolator = builderData.swipeDismissAnimationInterpolator
 
             setBackgroundColor(builderData.backgroundColor)
             setImages(builderData.images, builderData.startPosition, builderData.imageLoader)

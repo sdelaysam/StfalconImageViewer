@@ -18,23 +18,26 @@ package com.stfalcon.imageviewer.common.gestures.dismiss
 
 import android.annotation.SuppressLint
 import android.view.MotionEvent
+import android.view.VelocityTracker
 import android.view.View
-import android.view.animation.AccelerateInterpolator
+import android.view.animation.Interpolator
 import com.stfalcon.imageviewer.common.extensions.hitRect
 import com.stfalcon.imageviewer.common.extensions.setAnimatorListener
+import kotlin.math.abs
 
 internal class SwipeToDismissHandler(
+    private val animationDuration: Long,
+    private val swipeRatio: Float,
+    private val swipeInterpolator: Interpolator?,
     private val swipeView: View,
     private val onDismiss: () -> Unit,
     private val onSwipeViewMove: (translationY: Float, translationLimit: Int) -> Unit,
-    private val shouldAnimateDismiss: () -> Boolean
+    private val dismissOut: () -> Boolean
 ) : View.OnTouchListener {
 
-    companion object {
-        private const val ANIMATION_DURATION = 200L
-    }
-
-    private var translationLimit: Int = swipeView.height / 4
+    private var tracker: VelocityTracker? = null
+    private val velocityScale = 50
+    private var translationLimit: Int = (swipeView.height * swipeRatio).toInt()
     private var isTracking = false
     private var startY: Float = 0f
 
@@ -42,6 +45,9 @@ internal class SwipeToDismissHandler(
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+                if (null == tracker) tracker = VelocityTracker.obtain() else tracker?.clear()
+                tracker?.addMovement(event)
+
                 if (swipeView.hitRect.contains(event.x.toInt(), event.y.toInt())) {
                     isTracking = true
                 }
@@ -51,11 +57,20 @@ internal class SwipeToDismissHandler(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (isTracking) {
                     isTracking = false
-                    onTrackingEnd(v.height)
+                    tracker?.addMovement(event)
+                    tracker?.computeCurrentVelocity(velocityScale, Float.MAX_VALUE)
+                    val velocity: Float = tracker?.yVelocity ?: 1f
+                    if (null != tracker) {
+                        tracker?.recycle()
+                        tracker = null
+                    }
+
+                    onTrackingEnd(v.height, velocity)
                 }
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
+                tracker?.addMovement(event)
                 if (isTracking) {
                     val translationY = event.y - startY
                     swipeView.translationY = translationY
@@ -73,25 +88,28 @@ internal class SwipeToDismissHandler(
         animateTranslation(swipeView.height.toFloat())
     }
 
-    private fun onTrackingEnd(parentHeight: Int) {
+    private fun onTrackingEnd(parentHeight: Int, velocity: Float) {
+        val dismissOut = dismissOut()
         val animateTo = when {
-            swipeView.translationY < -translationLimit -> -parentHeight.toFloat()
-            swipeView.translationY > translationLimit -> parentHeight.toFloat()
+            dismissOut -> {
+                when {
+                    swipeView.translationY < -translationLimit -> -parentHeight.toFloat() - swipeView.translationY
+                    swipeView.translationY > translationLimit -> parentHeight.toFloat() - swipeView.translationY
+                    else -> 0f
+                }
+            }
+            abs(swipeView.translationY) >= translationLimit -> swipeView.translationY + velocity
             else -> 0f
         }
 
-        if (animateTo != 0f && !shouldAnimateDismiss()) {
-            onDismiss()
-        } else {
-            animateTranslation(animateTo)
-        }
+        animateTranslation(animateTo)
     }
 
     private fun animateTranslation(translationTo: Float) {
         swipeView.animate()
             .translationY(translationTo)
-            .setDuration(ANIMATION_DURATION)
-            .setInterpolator(AccelerateInterpolator())
+            .setDuration(animationDuration)
+            .setInterpolator(swipeInterpolator)
             .setUpdateListener { onSwipeViewMove(swipeView.translationY, translationLimit) }
             .setAnimatorListener(onAnimationEnd = {
                 if (translationTo != 0f) {
